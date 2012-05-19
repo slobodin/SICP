@@ -1,4 +1,4 @@
-;; Test prime
+;; Example 1.21
 
 (define (smallest-divisor n)
   (find-divisor n 2))
@@ -17,8 +17,6 @@
 (define (prime? n)
   (= n (smallest-divisor n)))
 
-(prime? 2)
-(prime? 4)
-(prime? 8)
-(prime? 17)
-(prime? 28)
+(smallest-divisor 199)
+(smallest-divisor 1999)
+(smallest-divisor 19999)
