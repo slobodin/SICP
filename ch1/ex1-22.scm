@@ -25,28 +25,46 @@
 
 (define (report-prime elapsed)
   (display " *** ")
-  (display elapsed))
+  (display elapsed)
+  #t)
 
 (define (start-prime-test n start-time)
   (if (prime? n)
-      (report-prime (- (runtime) start-time))))
+      (report-prime (- (runtime) start-time))
+      #f))
 
 (define (timed-prime-test n)
   (newline)
   (display n)
   (start-prime-test n (runtime)))
 
-(timed-prime-test 19)
-(timed-prime-test 199)
-(timed-prime-test 1999)
+;(timed-prime-test 19)
+;(timed-prime-test 199)
+;(timed-prime-test 1999)
 
 ;; search for primes functions
 
-;(define (search-for-primes start end)
-;  (define (iter counter)
-;    (cond ((= counter end) 0)
-;          ((not (even? counter)) (timed-prime-test counter))
-;          (else (iter (+ counter 1)))))
-;  (iter start))
+(define (next n)
+  (if (even? n) (+ n 1)
+      (+ n 2)))
 
-;(search-for-primes 0 100)
+(define (search-for-primes start end)
+  (define (iter odd-num)
+    (timed-prime-test odd-num)
+    (if (>= odd-num (- end 1)) (void)
+        (iter (next odd-num))))
+  (iter (next (- start 1))))
+
+(define (first-three-after start)
+  (define (iter i number)
+    (cond ((= i 3) (void))
+          ((timed-prime-test number) (iter (+ i 1) (next number)))
+          (else (iter i (next number)))))
+  (iter 0 start))
+
+(first-three-after 100)
+(first-three-after 10000)
+(first-three-after 100000)
+(first-three-after 1000000)
+
+;; Can't explain in English.
