@@ -1,4 +1,4 @@
 SICP
 ====
 
-ma sicp challenge
+My SICP challenge.
