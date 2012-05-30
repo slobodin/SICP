@@ -1,6 +1,11 @@
+;; Example 2.1
+
 (define (make-rat n d)
   (let ((g (gcd n d)))
-    (cons (/ n g) (/ d g))))
+    (if (< d 0)
+        (cons (/ (- n) g) (/ (- d) g))
+        (cons (/ n g) (/ d g)))))
+
 (define (numer x) (car x))
 (define (denom x) (cdr x))
 
@@ -35,11 +40,14 @@
 
 ;; test
 
-(define one-half (make-rat 1 2))
-(print-rat one-half)
+(define min-one-half-1 (make-rat -1 -2))
+(print-rat min-one-half-1)
 
-(define one-third (make-rat 1 3))
-(print-rat (add-rat one-half one-third))
+(define min-one-half-2 (make-rat -1 2))
+(print-rat min-one-half-2)
 
-(print-rat (mul-rat one-half one-third))
-(print-rat (add-rat one-third one-third))
+(define min-one-half-3 (make-rat 1 -2))
+(print-rat min-one-half-3)
+
+(define min-one-half-4 (make-rat 1 2))
+(print-rat min-one-half-4)
