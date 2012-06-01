@@ -37,5 +37,12 @@ one-through-four
 (lenght-iter odds)
 (lenght-iter squares)
 
-(display "----- Append test -----")
+(display "----- Append test -----\n")
 
+(define (my-append list1 list2)
+  (if (null? list1)
+      list2
+      (cons (car list1) (my-append (cdr list1) list2))))
+
+(my-append odds squares)
+(my-append squares odds)
