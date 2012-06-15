@@ -8,8 +8,8 @@
 (define (element-of-set? x set)
   (cond ((null? set) #f)
         ((= x (entry set)) #t)
-        ((< x (entry set)) (element-of-set x (left-branch set)))
-        (else (element-of-set x (right-branch set)))))
+        ((< x (entry set)) (element-of-set? x (left-branch set)))
+        (else (element-of-set? x (right-branch set)))))
 
 (define (adjoin-set x set)
   (cond ((null? set) (make-tree x '() '()))
