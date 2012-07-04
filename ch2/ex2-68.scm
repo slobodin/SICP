@@ -1,4 +1,4 @@
-;; Huffman tree
+;; Example 2.68
 
 (define (make-leaf symbol weight)
   (list 'leaf symbol weight))
@@ -44,16 +44,42 @@
         ((= 1 bit) (right-branch branch))
         (else (error "Bad bit while choosing branch"))))
 
-(define (adjoin-set x set)
-  (cond ((null? set) (list x))
-        ((< (weight x) (weight (car set))) (cons x set))
-        (else (cons (car set)
-                    (adjoin-set x (cdr set))))))
+(define sample-tree
+  (make-code-tree (make-leaf 'A 4)
+                  (make-code-tree
+                   (make-leaf 'B 2)
+                   (make-code-tree (make-leaf 'D 1)
+                                   (make-leaf 'C 1)))))
 
-(define (make-leaf-set pairs)
-  (if (null? pairs)
+(define sample-message '(0 1 1 0 0 1 0 1 0 1 1 1 0))
+
+(define decoded-msg (decode sample-message sample-tree))
+
+(define (encode message tree)
+  (if (null? message)
       '()
-      (let ((pair (car pairs)))
-        (adjoin-set (make-leaf (car pair)    ;; symbol
-                               (cadr pair))  ;; frequency
-                    (make-leaf-set (cdr pairs))))))
+      (append (encode-symbol (car message) tree)
+              (encode (cdr message) tree))))
+
+(define (encode-symbol symbol tree)
+  (if (leaf? tree)
+      '()
+      (let ((lb (left-branch tree))
+            (rb (right-branch tree)))
+        (cond ((find-symbol symbol lb) (cons '0 (encode-symbol symbol lb)))
+              ((find-symbol symbol rb) (cons '1 (encode-symbol symbol rb)))
+              (else (error "No such symbol in the Huffman tree"))))))
+
+(define (find-symbol symbol branch)
+  (define (helper symbol syms)
+    (if (null? syms)
+        #f
+        (if (eq? symbol (car syms))
+            #t
+            (helper symbol (cdr syms)))))
+  (helper symbol (symbols branch)))
+
+;; Start test
+
+sample-message
+(encode decoded-msg sample-tree)
