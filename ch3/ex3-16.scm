@@ -7,6 +7,8 @@
          (count-pairs (cdr x))
          1)))
 
+(def
+
 (count-pairs (list 1 2 3))
 
 (define x (list 1))

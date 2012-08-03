@@ -30,7 +30,7 @@
 
 (define (delete-queue! queue)
   (cond ((empty-queue? queue)
-         (error "Attempt to delete from empty queue"))
+         (error "Attempt to delete from an empty queue"))
         (else
          (set-front-ptr! queue (cdr (front-ptr queue)))
          queue)))
@@ -49,4 +49,4 @@
 (print-queue (delete-queue! q1))
 
 ;; Originally, queue is pair of two pointers: to the front and to the rear
-;; Interpreter prints data of first pointer (full queue) and print data of second pointer (rear data + null)
+;; Interpreter prints data of first pointer (full queue) and prints data of second pointer (rear data + null)
