@@ -1,16 +1,8 @@
 #lang racket
 
+;; Example 3.52
+
 (require racket/stream)
-
-;; cons-stream is a special form
-;(define (cons-stream a b)   ;; we don't need to compute b!!! 
-;  (cons a (stream-delay b)))
-
-;(define (stream-car stream)
-;  (car stream))
-
-;(define (stream-cdr stream)
-;  (stream-force (cdr stream)))
 
 (define (my-stream-ref s n)
   (if (= n 0)
@@ -46,3 +38,28 @@
                       (my-stream-filter pred (stream-rest stream))))
         (else
          (my-stream-filter pred (stream-rest stream)))))
+
+;; ----- 
+
+(define sum 0)
+
+(define (accum x)
+  (set! sum (+ x sum))
+  sum)
+
+(define seq (my-stream-map accum (stream-enumerate-interval 1 10)))
+
+;; sum = 0
+
+(define y (my-stream-filter even? seq))
+
+;; sum = 6
+;; 
+
+(define z (my-stream-filter (lambda (x) (= (remainder x 5) 0)) seq))
+
+;; 10
+
+;(my-stream-ref y 7)
+
+;(display-stream z)
