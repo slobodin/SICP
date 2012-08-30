@@ -173,7 +173,7 @@
 (define (let-exps exp)
   (if (null? exp)
       '()
-      (cons (cadar exp) (let-vars (cdr exp)))))
+      (cons (cadar exp) (let-exps (cdr exp)))))
 (define (let->combination exp)
   (cons (make-lambda (let-vars (let-vars-and-exps exp)) (let-body exp))
         (let-exps (let-vars-and-exps exp))))
@@ -281,6 +281,8 @@
     (define (scan vars vals)
       (cond ((null? vars)
              (env-loop (enclosing-environment env)))
+            ((eq? (car vars) '*unassigned)
+             (error "Unassigned variable -- LOOKUP" var))
             ((eq? var (car vars))
              (car vals))
             (else (scan (cdr vars) (cdr vals)))))    
@@ -373,7 +375,6 @@
   (newline) (display string) (newline))
 
 (define (user-print object)
-  ;(display the-global-environment))
   (if (compound-procedure? object)
       (display (list 'compound-procedure
                      (procedure-parameters object)

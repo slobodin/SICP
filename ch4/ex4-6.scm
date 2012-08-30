@@ -26,7 +26,7 @@
 (define (let-exps exp)
   (if (null? exp)
       '()
-      (cons (cadar exp) (let-vars (cdr exp)))))
+      (cons (cadar exp) (let-exps (cdr exp)))))
 
 (define (let->combination exp)
   (cons (make-lambda (let-vars (let-vars-and-exps exp)) (let-body exp))
