@@ -28,6 +28,10 @@
         ((assignment? exp) (eval-assignment exp env))
         ((definition? exp) (eval-definition exp env))
         ((if? exp) (eval-if exp env))
+        ((and? exp) (eval-and (and-operands exp) env))
+        ((or? exp) (eval-or (or-operands exp) env))
+        ((let? exp) (meval (let->combination (cdr exp)) env))
+        ((let*? exp) (meval (let*->nested-lets (cdr exp)) env))
         ((lambda? exp)
          (make-procedure (lambda-parameters exp)
                          (lambda-body exp)
@@ -115,7 +119,7 @@
 (define (definition-variable exp)
   (if (symbol? (cadr exp))
       (cadr exp)          ;; define variable
-      (caddr exp)))       ;; define procedure
+      (caadr exp)))       ;; define procedure
 
 (define (definition-value exp)
   (if (symbol? (cadr exp))
@@ -130,6 +134,22 @@
 (define (make-lambda parameters body)
   (cons 'lambda (cons parameters body)))
 
+;; and
+(define (and? exp) (tagged-list? exp 'and))
+(define (and-operands exp) (cdr exp))
+(define (eval-and exp env)
+  (cond ((null? exp) 'true)
+        ((false? (meval (car exp) env)) 'false)
+        (else (eval-and (cdr exp) env))))
+
+;; or
+(define (or? exp) (tagged-list? exp 'or))
+(define (or-operands exp) (cdr exp))
+(define (eval-or exp env)
+  (cond ((null? exp) 'false)
+        ((true? (meval (car exp) env)) 'true)
+        (else (eval-or (cdr exp) env))))
+
 ;; if stuff
 (define (if? exp) (tagged-list? exp 'if))
 (define (if-predicate exp) (cadr exp))
@@ -140,6 +160,36 @@
       'false))
 (define (make-if predicate consequent alternative)
   (list 'if predicate consequent alternative))
+
+;; let stuff
+(define (let? exp)
+  (tagged-list? exp 'let))
+(define (let-body exp) (cdr exp))
+(define (let-vars-and-exps exp) (car exp))
+(define (let-vars exp)
+  (if (null? exp)
+      '()
+      (cons (caar exp) (let-vars (cdr exp)))))
+(define (let-exps exp)
+  (if (null? exp)
+      '()
+      (cons (cadar exp) (let-vars (cdr exp)))))
+(define (let->combination exp)
+  (cons (make-lambda (let-vars (let-vars-and-exps exp)) (let-body exp))
+        (let-exps (let-vars-and-exps exp))))
+
+;; let* stuff
+(define (let*? exp)
+  (tagged-list? exp 'let*))
+(define (let*-body exp) (cdr exp))
+(define (let*-vars-and-exps exp) (car exp))
+(define (let*->nested-lets exp)
+  (define (helper var-exps body)
+    (if (null? (cdr var-exps))
+        (cons 'let (cons var-exps body))    ;; final let
+        (list 'let (list (car var-exps))
+              (helper (cdr var-exps) body))))
+  (helper (let*-vars-and-exps exp) (let*-body exp)))
 
 ;; begin
 (define (begin? exp) (tagged-list? exp 'begin))
@@ -281,10 +331,6 @@
         (list '- -)
         (list '/ /)
         (list '* *)
-        (list '\' 'quote)
-        (list 'lambda 'lambda)
-        (list 'if 'if)
-        (list 'cond 'cond)
         ))
 
 (define (primitive-procedure-names)
@@ -327,6 +373,7 @@
   (newline) (display string) (newline))
 
 (define (user-print object)
+  ;(display the-global-environment))
   (if (compound-procedure? object)
       (display (list 'compound-procedure
                      (procedure-parameters object)
@@ -334,4 +381,5 @@
                      '<procedure-env>))
       (display object)))
 
+the-global-environment
 (driver-loop)

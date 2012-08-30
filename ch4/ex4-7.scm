@@ -2,7 +2,7 @@
 
 ;; Example 4.7
 
-;; Need testing.
+;; Tested. Merged in interpreter.
 
 (define (eval exp env)
   (cond (...)

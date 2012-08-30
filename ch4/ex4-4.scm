@@ -2,7 +2,7 @@
 
 ;; Example 4.4
 
-;; not sure need testing
+;; Tested. Merged in interpreter.
 
 (define (eval exp env)
   (cond ((self-evaluating? exp) exp)
@@ -34,7 +34,7 @@
 (define (and-operands exp) (cdr exp))
 (define (eval-and exp env)
   (cond ((null? exp) 'true)
-        ((false? (eval (car exp))) 'false)
+        ((false? (eval (car exp) env)) 'false)
         (else (eval-and (cdr exp) env))))
 
 ;; or
@@ -42,6 +42,6 @@
 (define (or? exp) (tagged-list? exp 'or))
 (define (or-operands exp) (cdr exp))
 (define (eval-or exp env)
-  (cond ((true? (eval (car exp))) 'true)
-        ((null? exp) 'false)
+  (cond ((null? exp) 'false)
+        ((true? (eval (car exp) env)) 'true)
         (else (eval-or (cdr exp) env))))
