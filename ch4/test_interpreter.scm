@@ -32,6 +32,7 @@
         ((or? exp) (eval-or (or-operands exp) env))
         ((let? exp) (meval (let->combination (cdr exp)) env))
         ((let*? exp) (meval (let*->nested-lets (cdr exp)) env))
+        ((letrec? exp) (meval (letrec->let (cdr exp)) env))
         ((lambda? exp)
          (make-procedure (lambda-parameters exp)
                          (lambda-body exp)
@@ -190,6 +191,16 @@
         (list 'let (list (car var-exps))
               (helper (cdr var-exps) body))))
   (helper (let*-vars-and-exps exp) (let*-body exp)))
+
+;; letrec stuff
+(define (letrec? exp) (tagged-list? exp 'letrec))
+(define (letrec-vars-and-exps exp) (car exp))
+(define (letrec-body exp) (cdr exp))
+(define (letrec->let exp)
+  (list 'let 
+        (map (lambda (var-exp) (list (car var-exp) ''*unassigned)) (letrec-vars-and-exps exp))
+        (make-begin (append (map (lambda (var-exp) (list 'set! (car var-exp) (cadr var-exp))) (letrec-vars-and-exps exp))
+                            (letrec-body exp)))))
 
 ;; begin
 (define (begin? exp) (tagged-list? exp 'begin))
