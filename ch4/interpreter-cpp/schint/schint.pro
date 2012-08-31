@@ -7,10 +7,12 @@ QMAKE_CXXFLAGS += -std=gnu++0x
 SOURCES += main.cpp \
     eval.cpp \
     environment.cpp \
-    expression.cpp
+    expression.cpp \
+    schemelist.cpp
 
 HEADERS += \
     eval.h \
     environment.h \
-    expression.h
+    expression.h \
+    schemelist.h
 

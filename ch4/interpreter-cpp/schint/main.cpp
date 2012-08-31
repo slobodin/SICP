@@ -27,7 +27,7 @@ int main() try
     while (!exit)
     {
 //        input = readExpression();
-        exp = Expression::createExpression("( '\( x  2))"/*input*/);
+        exp = Expression::analyzeExpression("( define x 3 )"/*input*/);
 
 //        Expression *output = static_cast<Expression *>(eval(exp, globalEnvironment()));
 //        promtOutput(output);
