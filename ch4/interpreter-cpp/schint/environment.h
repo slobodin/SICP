@@ -8,19 +8,37 @@
 #ifndef ENVIRONMENT_H
 #define ENVIRONMENT_H
 
-#include <map>
-#include <string>
+#include "utils.h"
+#include "expression.h"
 
-class Evaluable;
+// WHY std::less<VariableExpression> doesn't work?????
+struct compare
+{
+    bool operator() (const shared_ptr<VariableExpression> &a, const shared_ptr<VariableExpression> &b) const
+    {
+        return *a < *b;
+    }
+};
 
 class Environment
 {
     Environment *m_baseEnvironment;
 
-    std::map<std::string, Evaluable *> m_frame;
+    typedef shared_ptr<VariableExpression> Var;
+    typedef shared_ptr<Expression> Val;
+
+    std::map<Var, Val, compare> m_frame;
 
 public:
     Environment(Environment *baseEnv);
+
+    shared_ptr<Expression> lookupVariableValue(const Var var) const;
+    void addBindingForFrame(const Var var, const Val val);
+
+    Environment *extendEnvironment(std::list<Var> vars, std::list<Val> vals);
+
+private:
+//    static boost::function
 };
 
 Environment *globalEnvironment();

@@ -6,46 +6,94 @@
  */
 
 #include "expression.h"
-#include "schemelist.h"
 
-#include <stdexcept>
+#include "schemelist.h"
+#include "environment.h"
+
+/*
+;; lambdas
+(define (lambda? exp) (tagged-list? exp 'lambda))
+(define (lambda-parameters exp) (cadr exp))
+(define (lambda-body exp) (cddr exp))
+(define (make-lambda parameters body)
+  (cons 'lambda (cons parameters body)))
+  */
+
+/*
+(define (analyze-lambda exp)
+  (let ((vars (lambda-parameters exp))
+        (bproc (analyze-sequence (lambda-body exp))))
+    (lambda (env) (make-procedure vars bproc env))))
+
+(define (analyze-sequence exps)
+  (define (sequentially proc1 proc2)
+    (lambda (env) (proc1 env) (proc2 env)))
+  (define (loop first-proc rest-procs)
+    (if (null? rest-procs)
+        first-proc                                       ;; only one combination
+        (loop (sequentially first-proc (car rest-procs)) ;; otherwise, loop through combinations
+              (cdr rest-procs))))
+  (let ((procs (map analyze exps)))
+    (if (null? procs)
+        (error "Empty sequence -- ANALYZE"))
+    (loop (car procs) (cdr procs))))
+    */
+
+/*
+(define (make-procedure parameters body env)
+  (list 'procedure parameters body env))
+
+(define (compound-procedure? p)
+  (tagged-list? p 'procedure))
+
+(define (procedure-parameters p) (cadr p))
+(define (procedure-body p) (caddr p))
+(define (procedure-environment p) (cadddr p))
+*/
+
+shared_ptr<DefinitionExpression> analyzeDefinition(const SchemeList &str)
+{
+    SchemeList defVarStr = str.car();
+
+    return make_shared<DefinitionExpression>(make_shared<VariableExpression>(defVarStr),
+                                             Expression::analyzeExpression(str.cdr()));
+}
 
 Expression::Expression()
 {
 }
 
-//Expression::ExpressionType Expression::typeBySExpression(const std::string &sexpr)
-//{
-//    std::string tag = sexpr.substr(1, sexpr.find(' ') - 1);
-
-
-
-//    throw std::runtime_error(std::string("Unknown expression type ") + tag + " .");
-//}
-
-Expression *Expression::analyzeExpression(const std::string &str)
+shared_ptr<Expression> Expression::analyzeExpression(const std::string &str)
 {
     SchemeList lst(str);
 
-    std::string tag = lst.car();
+    SchemeList tag = lst.car();
 
     if (tag == "\'")
-        return nullptr;
+        return nullexpr;
     if (tag == "set!")
-        return nullptr;
+        return nullexpr;
     if (tag == "define")
-        return new DefinitionExpression(0 /* analyze (rest) */, 0);
+        return analyzeDefinition(lst.cdr());
     if (tag == "if")
-        return nullptr;
+        return nullexpr;
     if (tag == "lambda")
-        return nullptr;
+        return nullexpr;
     if (tag == "begin")
-        return nullptr;
+        return nullexpr;
+    if (isDouble(tag))
+        return make_shared<NumberExpression<double> >(toDouble(tag));
+    if (isInt(tag))
+        return make_shared<NumberExpression<int> >(toInt(tag));
+    if (isLispString(tag))
+        return nullexpr;
+
+//    std::isxdigit
 //        if (tag == number);
 //        if (tag == symbol);
 //        if (tag == pair);
 
-    throw std::runtime_error(std::string("Unknown expression type ") + tag + " .");
+//    throw std::runtime_error(std::string("Unknown expression type ") + tag + " .");
 //    ExpressionType exprType = typeBySExpression(expr);
 
 //    new DefinitionExpr(cadr(expr), createExpression(caddr(expr)));
@@ -63,7 +111,7 @@ Expression *Expression::analyzeExpression(const std::string &str)
 //    if (exprType == Begin)
 //        return new BeginExpression("");
 
-//    return nullptr;
+    return nullexpr;
 }
 
 Expression *Expression::car() const
@@ -74,19 +122,23 @@ Expression *Expression::cdr() const
 {
 }
 
-/*
-VariableExpression::VariableExpression(const std::string &value)
+
+VariableExpression::VariableExpression(const std::string &varSymbol)
+    : m_symbol(varSymbol)
 {
 }
 
-Expression *VariableExpression::eval(Environment *env)
+shared_ptr<Expression> VariableExpression::eval(Environment *env)
 {
+//    auto var = make_shared<VariableExpression>(this);
+//    return env->lookupVariableValue(var);
+//    env->lookupVariableValue
 }
 
 std::string VariableExpression::toString() const
 {
 }
-
+/*
 QuotedExpression::QuotedExpression(const std::string &value)
 {
 }
@@ -111,11 +163,12 @@ std::string AssignmentExpression::toString() const
 {
 }*/
 
-DefinitionExpression::DefinitionExpression(Expression *variable, Expression *value)
+DefinitionExpression::DefinitionExpression(shared_ptr<VariableExpression> variable, shared_ptr<Expression> value)
+    : m_var(variable), m_value(value)
 {
 }
 
-Expression *DefinitionExpression::eval(Environment *env)
+shared_ptr<Expression> DefinitionExpression::eval(Environment *env)
 {
 }
 

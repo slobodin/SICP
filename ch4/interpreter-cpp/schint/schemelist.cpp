@@ -6,7 +6,6 @@
  */
 
 #include "schemelist.h"
-#include <stdexcept>
 
 void SchemeList::eraseWhiteSpaces()
 {
@@ -34,7 +33,7 @@ SchemeList::SchemeList(const std::string &expr)
 {
     eraseWhiteSpaces();
 
-    if (m_listString.empty() || m_listString[0] != '(' || m_listString[m_listString.size() - 1] != ')')
+    if (m_listString.empty()/* || m_listString[0] != '(' || m_listString[m_listString.size() - 1] != ')'*/)
         throw std::runtime_error("Bad expression.");
 }
 
@@ -43,7 +42,12 @@ SchemeList SchemeList::car() const
     if (m_listString == "()" || m_listString.at(0) != '(')
         throw std::runtime_error("Unable to get car.");
 
-    return SchemeList(m_listString.substr(1, m_listString.find(' ') - 1));
+    if (m_listString.find(' ') != std::string::npos)
+        return SchemeList(m_listString.substr(1, m_listString.find(' ') - 1));
+    else if (m_listString.find(')') != std::string::npos)
+        return SchemeList(m_listString.substr(1, m_listString.find(')') - 1));
+    else
+        throw std::runtime_error("Unable to get car.");
 }
 
 SchemeList SchemeList::cdr() const

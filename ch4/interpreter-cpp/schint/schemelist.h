@@ -8,7 +8,7 @@
 #ifndef SCHEMELIST_H
 #define SCHEMELIST_H
 
-#include <string>
+#include "utils.h"
 
 /**
   * Lisp list string representation.
@@ -26,6 +26,7 @@ public:
     SchemeList cdr() const;
 
     operator std::string() { return m_listString; }
+    bool operator== (const std::string &str) const { return m_listString == str; }
 };
 
 #endif // SCHEMELIST_H

@@ -1,7 +1,4 @@
-#include <iostream>
-#include <string>
-#include <stdexcept>
-
+#include "utils.h"
 #include "expression.h"
 #include "environment.h"
 
@@ -22,7 +19,7 @@ int main() try
     bool exit = false;
 
     std::string input;
-    Expression *exp;
+    shared_ptr<Expression> exp;
 
     while (!exit)
     {
@@ -32,11 +29,11 @@ int main() try
 //        Expression *output = static_cast<Expression *>(eval(exp, globalEnvironment()));
 //        promtOutput(output);
 
-        delete exp;
+//        delete exp;
 //        delete output;
     }
 
-    delete exp;
+//    delete exp;
 
     return 0;
 }
