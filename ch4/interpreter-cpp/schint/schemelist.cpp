@@ -34,7 +34,8 @@ SchemeList::SchemeList(const std::string &expr)
     eraseWhiteSpaces();
 
     if (m_listString.empty()/* || m_listString[0] != '(' || m_listString[m_listString.size() - 1] != ')'*/)
-        throw std::runtime_error("Bad expression.");
+        m_listString = "()";
+//        throw std::runtime_error("Bad expression.");
 }
 
 SchemeList SchemeList::car() const

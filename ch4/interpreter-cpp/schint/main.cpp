@@ -21,17 +21,17 @@ int main() try
     std::string input;
     shared_ptr<Expression> exp;
 
-    while (!exit)
-    {
-//        input = readExpression();
-        exp = Expression::analyzeExpression("( define x 3 )"/*input*/);
+//    while (!exit)
+//    {
+////        input = readExpression();
+//        exp = Expression::analyzeExpression("( define x 3 )"/*input*/);
 
-//        Expression *output = static_cast<Expression *>(eval(exp, globalEnvironment()));
-//        promtOutput(output);
+////        Expression *output = static_cast<Expression *>(eval(exp, globalEnvironment()));
+////        promtOutput(output);
 
-//        delete exp;
-//        delete output;
-    }
+////        delete exp;
+////        delete output;
+//    }
 
 //    delete exp;
 

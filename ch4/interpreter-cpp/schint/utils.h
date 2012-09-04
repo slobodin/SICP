@@ -11,6 +11,7 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <iterator>
 #include <map>
 #include <stdexcept>
 #include <algorithm>
