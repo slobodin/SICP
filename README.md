@@ -1,4 +1,4 @@
 SICP
-====
+----
 
-My SICP challenge.
+SICP challenge.
