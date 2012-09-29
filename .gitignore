@@ -6,3 +6,4 @@ ch4/*.scm~
 ch4/interpreter-cpp/schint-release/
 ch4/interpreter-cpp/schint-debug/
 ch4/interpreter-cpp/schint/schint.pro.user
+ch4/interpreter-python/__pycache__/
