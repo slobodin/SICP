@@ -1,4 +1,6 @@
+from functools import *
 class EnvironmentException(Exception): pass
+class UnboundVariableException(EnvironmentException): pass
 
 class Environment:
     
@@ -8,7 +10,7 @@ class Environment:
 
     def define(self, variable, value):
         self.frame[variable.raw[0]] = value
-        print("Environment after define var:val", self.frame)
+        #print("Environment after define var:val", self.frame)
 
     def set(self, variable, value):
         if variable.raw[0] in self.frame.keys():
@@ -18,21 +20,25 @@ class Environment:
                 self.baseEnv.set(variable, value)
             else:
                 raise EnvironmentException                
-        print("Environment after setting var:val", self.frame)
+        #print("Environment after setting var:val", self.frame)
         
     def lookup(self, variable):
         if variable.raw[0] in self.frame.keys():
             return self.frame[variable.raw[0]]
         else:
             if self.baseEnv:
-                self.baseEnv.lookup(variable)
+                return self.baseEnv.lookup(variable)
             else:
-                raise EnvironmentException
+                raise UnboundVariableException
 
 
-globalEnvironment = Environment({ "+" : lambda x, y: x + y,
-                                  "-" : lambda x, y: x - y,
-                                  "*" : lambda x, y: x * y,
-                                  "/" : lambda x, y: x / y })
+globalEnvironment = Environment({ "+" : lambda *args: reduce(lambda x, y: x + y, args),
+                                  "-" : lambda *args: reduce(lambda x, y: x - y, args),
+                                  "*" : lambda *args: reduce(lambda x, y: x * y, args),
+                                  "/" : lambda *args: reduce(lambda x, y: x / y, args),
+                                  ">" : lambda x, y: x > y,
+                                  "<" : lambda x, y: x < y,
+                                  ">=" : lambda x, y: x >= y,
+                                  "<=" : lambda x, y: x <= y })
 
 from Expression import *

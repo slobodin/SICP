@@ -1,8 +1,5 @@
-from EvalApply import schemeEval
-from Environment import Environment, globalEnvironment
-
-def printResult(exp):
-    print("Xynta")
+from EvalApply import *
+from Environment import *
 
 def main():
     print("Type enter (blank line) to finish")
@@ -10,8 +7,8 @@ def main():
     while True:
         line = input("> ")
         if line:
-            output = schemeEval(line, globalEnvironment)
-            printResult(output)
+            output = Eval(line, globalEnvironment)
+            print(output)
         else:
             break
             

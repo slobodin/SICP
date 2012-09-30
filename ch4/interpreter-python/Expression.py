@@ -1,15 +1,13 @@
-from io import StringIO
-from tokenize import generate_tokens
 from functools import *
+import copy
 from Environment import Environment
 
 class ExpressionException(Exception): pass
 class BadExpression(ExpressionException): pass
 class PureVirtualFunctionCall(ExpressionException): pass    # lol, abstract methods
 
-
 # expr.raw is Python list, that represents Scheme list like
-#  ['(', 'define', '(', 'square', 'x', ')', '(', '*', 'x', 'x', ')', ')']
+#  ['define', ['square', 'x'], ['*', 'x', 'x']]
 class Expression:
     
     def __init__(self, exprList):
@@ -18,62 +16,73 @@ class Expression:
     def car(self):
         if not len(self.raw):
             raise BadExpression
-
-        if self.raw[1] == "(":
-            return Expression(self.raw[1:self.raw.index(")") + 1])
-        else:
-            return Expression(self.raw[1])
+        return Expression(self.raw[0])
 
     def cdr(self):
-        if not len(self.raw) or self.raw[0] != "(":
+        if not len(self.raw):
             raise BadExpression
-            
-        if self.raw[1] == "(":
-            temp = self.raw[self.raw.index(")"):]
-            temp = temp[temp.index("("):]
-            temp.insert(0, "(")
-            return Expression(temp)
-        else:
-            temp = self.raw[2:]
-            temp.insert(0, "(")
-            return Expression(temp)
+        return Expression(self.raw[1:])
             
     @staticmethod
     def cons(e1, e2):
-        raw1 = reduce(lambda a, b: a + " " + b, e1.raw)
-        raw2 = reduce(lambda a, b: a + " " + b, e2.raw)
-        return Expression.makeExpression(raw2[0:1] + raw1 + raw2[1:])
-    
+        lst2 = copy.deepcopy(e2.raw)
+        lst1 = copy.deepcopy(e1.raw)
+        lst2.insert(0, lst1)
+        return Expression(lst2)
+        
     @staticmethod
-    def list(*arg):
-        lst = ""
-        for it in arg:
-            lst += " "
-            if isinstance(it, Expression):
-                lst += reduce(lambda a, b: a + " " + b, it.raw)
+    def fromPythonList(lst):
+        # check for variables or just numbers
+        if not isinstance(lst, list):
+            try:
+                floatNum = float(lst)
+                return NumberExpression([floatNum])
+            except ValueError:
+                return VariableExpression([lst])
+        # and return concrete expression
+        concreteExpression = ExpressionsFactory.create(Expression(lst))
+        if concreteExpression:
+            return concreteExpression
+        else:
+            return ApplicationExpression(lst)
+
+    @staticmethod
+    def fromSchemeList(string):
+        def createList(tokens):
+            token = tokens.pop(0)
+            if token == "(":
+                newList = []
+                while tokens[0] != ")":
+                    newList.append(createList(tokens))
+                tokens.pop(0)
+                return newList
+            elif token == ")":
+                raise BadExpression
             else:
-                lst += str(it)
-        return Expression.makeExpression("(" + lst + ")")
-    
-    @staticmethod
-    def makeExpression(string):
-        lst = [token[1] for token 
-                in generate_tokens(StringIO(string).readline)
-                if token[1]]
-        return Expression(lst)
+                try: return int(token)
+                except ValueError:
+                    try: return float(token)
+                    except ValueError: return token
+        
+        # tokenize expression list
+        tokens = string.replace("(", " ( ").replace(")", " ) ").split()
+        if not len(tokens):
+            raise BadExpression
+        
+        # create Python list, that's looks like Scheme list
+        resList = createList(tokens)
+        return Expression.fromPythonList(resList)
 
     def eval(self, env):
-        raise PureVirtualFunctionCall
-
-    def apply(self):
-        pass
+        return self
+        #raise PureVirtualFunctionCall
 
 
 class AssignmentExpression(Expression):
     
     def __init__(self, exprList):
         super().__init__(exprList)
-        
+
     def __assignmentVariable(self):
         return VariableExpression([self.cdr().car().raw])
         
@@ -81,61 +90,63 @@ class AssignmentExpression(Expression):
         return Expression([self.cdr().cdr().car().raw])
 
     def eval(self, env):
-        print("Eval assignment:", self.raw)
         env.set(
             self.__assignmentVariable(),
             schemeEval(self.__assignmentValue(), env)
         )
         return "ok"
-    
-    def apply(self):
-        pass
 
 
 class DefinitionExpression(Expression):
     
     def __init__(self, exprList):
         super().__init__(exprList)
-
+        
     def __definitionVariable(self):
         var = self.cdr().car().raw
         if isinstance(var, str):
             # define variable
             return VariableExpression([var])
         else:
-            # suppose, it's `(` symbol
             # define procedure
             return VariableExpression([self.cdr().car().car().raw]) 
-
+        
     def __definitionValue(self):
         var = self.cdr().car().raw
         if isinstance(var, str):
             return Expression([self.cdr().cdr().car().raw])
         else:
             return LambdaExpression.makeLambda(
-                    Expression(self.cdr().car().cdr().raw),
-                    Expression(self.cdr().cdr().raw))
+                        Expression(self.cdr().car().cdr().raw),
+                        Expression(self.cdr().cdr().raw))
 
     def eval(self, env):
-        print("Eval definition:", self.raw)
         env.define(
             self.__definitionVariable(),
             schemeEval(self.__definitionValue(), env)
         )
         return "ok"
-        
-    def apply(self):
-        pass
 
 
 class IfExpression(Expression):
     
     def __init__(self, exprList):
         super().__init__(exprList)
+
+    def __ifPredicate(self):
+        return Expression.fromPythonList(self.cdr().car().raw)
         
+    def __ifConsequent(self):
+        return Expression.fromPythonList(self.cdr().cdr().car().raw)
+    
+    def __ifAlternative(self):
+        return Expression.fromPythonList(self.cdr().cdr().cdr().car().raw)
+
     def eval(self, env):
-        print("Eval if:", self.raw)
-        pass
+        if schemeEval(self.__ifPredicate(), env):
+            return schemeEval(self.__ifConsequent(), env)
+        else:
+            return schemeEval(self.__ifAlternative(), env)
 
 
 class LambdaExpression(Expression):
@@ -152,16 +163,14 @@ class LambdaExpression(Expression):
     @staticmethod
     def makeLambda(params, body):
         paramsBody = Expression.cons(params, body)
-        return Expression.cons(Expression.makeExpression("lambda"), paramsBody)
+        lambdaExpr = Expression("lambda")
+        return LambdaExpression(Expression.cons(lambdaExpr, paramsBody).raw)
 
     def eval(self, env):
-        print("Eval lambda:", self.raw)
-        compoundProc = Expression.list("procedure", self.__params(), self.__body())
-        compoundProc.raw.insert(-1, env)
+        paramsAndBody = Expression.cons(self.__params(), self.__body())
+        compoundProc = Expression.cons(Expression("procedure"), paramsAndBody)
+        compoundProc.raw.append(env)
         return compoundProc
-
-    def apply(self):
-        pass
 
 
 class NumberExpression(Expression):
@@ -170,11 +179,7 @@ class NumberExpression(Expression):
         super().__init__(exprList)
 
     def eval(self, env):
-        print("Eval number:", self.raw)
         return self.raw[0]
-
-    def apply(self):
-        pass
 
 
 class VariableExpression(Expression):
@@ -183,11 +188,35 @@ class VariableExpression(Expression):
         super().__init__(exprList)
 
     def eval(self, env):
-        print("Eval variable:", self.raw)
         return env.lookup(self)
 
-    def apply(self):
-        pass
+
+class ApplicationExpression(Expression):
+    
+    def __init__(self, exprList):
+        super().__init__(exprList)
+        
+    def __operator(self):
+        return VariableExpression([self.car().raw])
+    
+    def __operands(self):
+        return Expression(self.cdr().raw)
+        
+    def __listOfValues(self, exprs, env):
+        res = []
+        for e in exprs.raw:
+            if isinstance(e, list):
+                evaled = schemeEval(Expression.fromPythonList(e), env)
+            else:
+                evaled = schemeEval(Expression([e]), env)
+            res.append(evaled)
+        return res
+
+    def eval(self, env):
+        return schemeApply(
+            schemeEval(self.__operator(), env),
+            self.__listOfValues(self.__operands(), env)
+        )
 
 
 class ExpressionsFactory:
@@ -199,7 +228,12 @@ class ExpressionsFactory:
         "lambda" : LambdaExpression
     }
     
-    def create(self, expr):
-        return self.__objects[expr.car().raw](expr.raw)
-        
-from EvalApply import schemeEval
+    @staticmethod
+    def create(expression):
+        if expression.car().raw in ExpressionsFactory.__objects.keys():
+            return ExpressionsFactory.__objects[expression.car().raw](expression.raw)
+        else:
+            return None
+
+
+from EvalApply import schemeEval, schemeApply
