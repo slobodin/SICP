@@ -18,9 +18,6 @@ class Environment:
         else:
             if self.baseEnv:
                 self.baseEnv.set(variable, value)
-            else:
-                raise EnvironmentException                
-        #print("Environment after setting var:val", self.frame)
         
     def lookup(self, variable):
         if variable.raw[0] in self.frame.keys():
@@ -29,7 +26,7 @@ class Environment:
             if self.baseEnv:
                 return self.baseEnv.lookup(variable)
             else:
-                raise UnboundVariableException
+                return None
 
 
 globalEnvironment = Environment({ "+" : lambda *args: reduce(lambda x, y: x + y, args),

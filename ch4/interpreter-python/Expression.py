@@ -74,8 +74,7 @@ class Expression:
         return Expression.fromPythonList(resList)
 
     def eval(self, env):
-        return self
-        #raise PureVirtualFunctionCall
+        raise PureVirtualFunctionCall
 
 
 class AssignmentExpression(Expression):
