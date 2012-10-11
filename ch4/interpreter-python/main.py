@@ -5,7 +5,7 @@ def main():
     print("Type enter (blank line) to finish")
     
     while True:
-        line = input("> ")
+        line = input(">> ")
         if line:
             output = Eval(line, globalEnvironment)
             print(output)

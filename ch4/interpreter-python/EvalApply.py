@@ -11,6 +11,7 @@ def checkSelfEvaluating(expr, env):
     else:
         return None
 
+
 def schemeEval(expr, env):
     selfEv = checkSelfEvaluating(expr, env)
     if selfEv:
